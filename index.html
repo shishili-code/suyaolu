@@ -145,7 +145,10 @@
             border: 1px dashed rgba(212, 175, 55, 0.3);
             border-radius: 8px;
             padding: 12px;
-            margin-top: 6px;
+            margin-top: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
         .divination-row {
@@ -162,9 +165,15 @@
             line-height: 1.4;
         }
 
-        .divination-row input {
+        .divination-row input[type="number"] {
             width: 85px;
             text-align: center;
+        }
+
+        .divination-row input[type="date"] {
+            width: 142px;
+            padding: 7px 8px;
+            font-size: 13px;
         }
 
         .btn-submit {
@@ -217,6 +226,7 @@
             border-bottom: 1px dashed var(--border-gold);
             padding-bottom: 14px;
             margin-bottom: 14px;
+            position: relative;
         }
 
         .cp-names {
@@ -224,12 +234,27 @@
             font-weight: bold;
             color: var(--gold-light);
             letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
 
-        .cp-names span {
-            color: var(--crimson);
-            margin: 0 8px;
-            font-size: 16px;
+        .btn-swap-inline {
+            background: rgba(212, 175, 55, 0.14);
+            border: 1px solid var(--border-gold);
+            color: var(--gold);
+            font-size: 12px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            letter-spacing: 0;
+            transition: all 0.2s;
+        }
+
+        .btn-swap-inline:active {
+            transform: scale(0.95);
+            background: rgba(212, 175, 55, 0.28);
         }
 
         .tag-row {
@@ -358,29 +383,41 @@
 
         .action-btns {
             display: grid;
-            grid-template-columns: 1.4fr 1fr;
-            gap: 10px;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 8px;
             margin-top: 16px;
         }
 
         .btn-poster {
-            padding: 12px;
+            grid-column: 1 / -1;
+            padding: 13px;
             border: none;
             border-radius: 8px;
             background: linear-gradient(135deg, #a82828 0%, #c93b3b 100%);
             color: #fff;
-            font-size: 13.5px;
+            font-size: 14px;
             font-weight: bold;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
             cursor: pointer;
             box-shadow: 0 4px 12px rgba(168, 40, 40, 0.4);
         }
 
+        .btn-swap-big {
+            padding: 11px;
+            background: rgba(212, 175, 55, 0.14);
+            border: 1px solid var(--gold);
+            color: var(--gold-light);
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
         .btn-retry {
-            padding: 12px;
+            padding: 11px;
             background: transparent;
             border: 1px solid var(--border-gold);
-            color: var(--gold-light);
+            color: var(--text-muted);
             border-radius: 8px;
             font-size: 13px;
             cursor: pointer;
@@ -463,9 +500,9 @@
 
 <div class="app-container">
     <header>
-        <div class="title-badge">康熙笔画 · 正宗宿曜经</div>
+        <div class="title-badge">康熙笔画 · 宿曜经 · 建除择吉</div>
         <h1>宿曜录</h1>
-        <div class="subtitle">五格数理 · 二十七宿 · 梅花易数</div>
+        <div class="subtitle">五格数理 · 二十七宿 · 同框择吉</div>
     </header>
 
     <div class="card" id="input-section">
@@ -497,7 +534,11 @@
 
         <div class="divination-box">
             <div class="divination-row">
-                <span>✦ 默念二人名号，输入此刻灵感数字（1-99起卦鉴糖）：</span>
+                <span>✦ <b>同框 / 定情吉日</b>（选填，默认今日）：</span>
+                <input type="date" id="meetDate">
+            </div>
+            <div class="divination-row">
+                <span>✦ 默念二人名号，输入此刻<b>灵感灵数</b>：</span>
                 <input type="number" id="luckyNum" placeholder="如 52" min="1" max="999">
             </div>
         </div>
@@ -507,17 +548,22 @@
 
     <div class="card" id="loading">
         <div class="bagua-spinner">☯</div>
-        <div style="color: var(--gold-light); font-size: 14px; letter-spacing: 2px;">查验康熙笔画，排布农历星宿...</div>
-        <div style="color: var(--text-muted); font-size: 12px; margin-top: 6px;">正在演算《宿曜经》二十七宿距离矩阵</div>
+        <div style="color: var(--gold-light); font-size: 14px; letter-spacing: 2px;">拨动星盘，推演建除十二神...</div>
+        <div style="color: var(--text-muted); font-size: 12px; margin-top: 6px;">正在演算康熙五格、二十七宿与同框吉凶</div>
     </div>
 
     <div class="card" id="result-card">
         <div class="poster-header">
             <div style="font-size: 11px; color: var(--gold); letter-spacing: 3px; margin-bottom: 6px;">【 宿曜录 · 命理姻缘判词 】</div>
-            <div class="cp-names" id="res-names">甲 <span>&</span> 乙</div>
+            <div class="cp-names">
+                <span id="res-nameA" style="color: var(--gold-light); font-size: 21px; margin:0;">甲</span>
+                <button class="btn-swap-inline" onclick="swapPositions()" title="互换左右位重测">⇄ 颠倒乾坤</button>
+                <span id="res-nameB" style="color: var(--gold-light); font-size: 21px; margin:0;">乙</span>
+            </div>
             <div class="tag-row">
                 <div class="main-tag" id="res-main-tag">前世业胎</div>
                 <div class="sub-tag" id="res-wx-tag">真金烈火</div>
+                <div class="sub-tag" id="res-day-tag">成日·大吉</div>
             </div>
         </div>
 
@@ -553,7 +599,8 @@
         </div>
 
         <div class="detail-block">
-            <h4>三、天机鉴糖签（梅花易数时间起卦）</h4>
+            <h4>三、同框择吉与天机签（建除十二神 × 梅花易数）</h4>
+            <span class="calc-proof" id="res-meet-proof"></span>
             <p id="res-gua-desc"></p>
         </div>
 
@@ -564,12 +611,13 @@
 
         <div class="action-btns">
             <button class="btn-poster" onclick="generatePoster()">生成高清庚帖海报</button>
+            <button class="btn-swap-big" onclick="swapPositions()">⇄ 互换左右位反测</button>
             <button class="btn-retry" onclick="resetForm()">重测另一对</button>
         </div>
     </div>
 
     <footer>
-        内置康熙字典繁体笔画数理、二十七宿排盘与梅花易数算法<br>
+        内置康熙字典繁体笔画、二十七宿排盘、建除十二神与梅花易数<br>
         仅供娱乐与同人创作参考，理智嗑糖 · 《宿曜录》
     </footer>
 </div>
@@ -588,6 +636,15 @@
 <canvas id="poster-canvas" style="display:none;"></canvas>
 
 <script>
+// 默认将“同框/定情吉日”设为今天
+window.addEventListener("DOMContentLoaded", () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    document.getElementById("meetDate").value = `${yyyy}-${mm}-${dd}`;
+});
+
 const KANGXI_GROUPS = {
     1: "一乙",
     2: "丁七乃九了二人入八几刀力十卜又",
@@ -768,15 +825,31 @@ const KNOWLEDGE_BASE = {
         }
     },
 
+    // 老黄历“建除十二神”同框择吉库
+    jianChuTwelve: [
+        { name: "建日", tag: "建日·万物生发", verdict: "此日同框主【初见惊艳、缘起心动】，适合二刷初遇名场面，糖分新鲜度满分！" },
+        { name: "除日", tag: "除日·扫除阴霾", verdict: "此日同框主【误会冰释、双向奔赴】，过往所有意难平皆烟消云散，适合庆祝和解与发糖！" },
+        { name: "满日", tag: "满日·糖分爆棚", verdict: "此日同框乃老黄历【大吉满日】，主甜度满溢、排面拉满，极易掉落全网狂欢的顶级神图！" },
+        { name: "平日", tag: "平日·岁月静好", verdict: "此日同框主【细水长流、默契如常】，没有刻意营业的工业糖精，全是不经意间的自然偏爱。" },
+        { name: "定日", tag: "定日·原地锁死", verdict: "此日同框乃【上上吉定日】，主名分落定、三生契阔！建议民政局直接搬来，CP粉原地过年！" },
+        { name: "执日", tag: "执日·执手相看", verdict: "此日同框主【偏执守护、双向锁定】，眼神拉丝频率极高，适合用放大镜逐帧考古微表情！" },
+        { name: "破日", tag: "破日·破局虐恋", verdict: "此日同框带【破局张力】，虽有微虐或极限拉扯预警，但“不破不立”，虐到极致便是深情！" },
+        { name: "危日", tag: "危日·心跳加速", verdict: "此日同框主【危险边缘试探】，在公开场合疯狂发糖踩线，旁人捏把汗，正主嗑得飞起！" },
+        { name: "成日", tag: "成日·天作之合", verdict: "此日同框乃【天喜成日】，主功成名就、双向成就！二人同台必有高光名场面载入史册！" },
+        { name: "收日", tag: "收日·双向奔赴", verdict: "此日同框主【颗粒归仓、真心回应】，所有的暗恋与守护都有了回响，适合剪辑高甜混剪！" },
+        { name: "开日", tag: "开日·心扉大开", verdict: "此日同框乃【黄道开日】，主卸下防备、坦诚相待，双标现场与宠溺互动密集掉落！" },
+        { name: "闭日", tag: "闭日·专属结界", verdict: "此日同框主【私密结界、旁若无人】，哪怕身处人海也仿佛只有彼此，悄悄话含量严重超标！" }
+    ],
+
     hexagrams: [
-        { name: "《泽山咸》卦", score: "99%", desc: "咸者，感也，主心意相通。暗流涌动，眼神拉丝！旁人看不见的角落里，二人的磁场早已悄悄共振，今日份糖分严重超标。", yi: "逐帧分析对视、存图发超话", ji: "怀疑人生、错过名场面" },
-        { name: "《地天泰》卦", score: "98%", desc: "天地交而万物通，正缘之兆，百无禁忌！近期必有高能发糖或经典同框掉落，建议提前备好速效救心丸，坐等按头嗑糖。", yi: "大声安利、重温初遇名场面", ji: "低调潜伏、怀疑糖分" },
-        { name: "《水火既济》卦", score: "96%", desc: "水火相交，功成圆满。一冷一热、一动一静，性格上的极致反差恰恰构成了最完美的互补，属于天作之合的宿命配置。", yi: "写同人文、剪辑混剪", ji: "唯粉吵架、破坏氛围" },
-        { name: "《火水未济》卦", score: "94%", desc: "事未穷也，充满无限可能。窗户纸就差最后一层，正处于极限推拉的暧昧巅峰！别急，最好的糖永远在下一秒发生。", yi: "耐心蹲守、脑补后续", ji: "急于求成、半途下车" },
-        { name: "《风泽中孚》卦", score: "99%", desc: "中孚，至诚感应。无需多言的绝对信任！哪怕隔着人山人海，只要回头就一定能看到对方的目光，双标现场石锤！", yi: "收集双标合集、开心嗑糖", ji: "听信谣言、自乱阵脚" },
-        { name: "《地雷复》卦", score: "97%", desc: "一阳来复，万象更新。久别重逢之兆！无论中间隔了多少时光与风雨，兜兜转转最终还是会回到彼此身边。", yi: "重温经典、相信宿命", ji: "轻易放弃、悲观丧气" },
-        { name: "《风雷益》卦", score: "96%", desc: "风雷激荡，彼此增益。遇水搭桥，逢山开路，二人同框必有高光时刻，属于互相旺事业、共同登顶的强强联合。", yi: "转发锦鲤、庆祝高光", ji: "自我内耗、错过物料" },
-        { name: "《雷风恒》卦", score: "95%", desc: "日月得天而能久照，长长久久之卦！不靠一时炒作，全靠多年如一日的陪伴与习惯，细水长流最动人。", yi: "考古早期物料、写长评", ji: "喜新厌旧、三分钟热度" }
+        { name: "《泽山咸》卦", score: "99%", desc: "卦象得【泽山咸】，咸者感也，主心意相通、眼神拉丝，旁人看不见的角落里磁场早已悄悄共振。", yi: "逐帧分析对视、存图发超话", ji: "怀疑人生、错过名场面" },
+        { name: "《地天泰》卦", score: "98%", desc: "卦象得【地天泰】，天地交而万物通，正缘之兆，百无禁忌，近期必有高能发糖或经典同框掉落。", yi: "大声安利、重温初遇名场面", ji: "低调潜伏、怀疑糖分" },
+        { name: "《水火既济》卦", score: "96%", desc: "卦象得【水火既济】，一冷一热、一动一静，性格上的极致反差恰恰构成了最完美的宿命互补。", yi: "写同人文、剪辑混剪", ji: "唯粉吵架、破坏氛围" },
+        { name: "《火水未济》卦", score: "94%", desc: "卦象得【火水未济】，窗户纸就差最后一层，正处于极限推拉的暧昧巅峰，最好的糖永远在下一秒。", yi: "耐心蹲守、脑补后续", ji: "急于求成、半途下车" },
+        { name: "《风泽中孚》卦", score: "99%", desc: "卦象得【风泽中孚】，至诚感应，无需多言的绝对信任，回头就一定能看到对方的目光，双标石锤！", yi: "收集双标合集、开心嗑糖", ji: "听信谣言、自乱阵脚" },
+        { name: "《地雷复》卦", score: "97%", desc: "卦象得【地雷复】，一阳来复，久别重逢之兆！无论隔了多少时光与风雨，最终还是会回到彼此身边。", yi: "重温经典、相信宿命", ji: "轻易放弃、悲观丧气" },
+        { name: "《风雷益》卦", score: "96%", desc: "卦象得【风雷益】，风雷激荡彼此增益，同框必有高光时刻，属于互相旺事业、共同登顶的强强联合。", yi: "转发锦鲤、庆祝高光", ji: "自我内耗、错过物料" },
+        { name: "《雷风恒》卦", score: "95%", desc: "卦象得【雷风恒】，日月得天而能久照，不靠一时炒作，全靠多年如一日的陪伴与习惯，细水长流最动人。", yi: "考古早期物料、写长评", ji: "喜新厌旧、三分钟热度" }
     ]
 };
 
@@ -867,11 +940,35 @@ function calcSutraRelation(dateStrA, dateStrB, fallbackA, fallbackB) {
     };
 }
 
+// 传统老黄历“建除十二神”同框吉日计算
+function calcJianChuDay(dateStr) {
+    let targetDate = new Date();
+    let displayStr = "";
+    if (dateStr) {
+        const parts = dateStr.split("-");
+        targetDate = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        displayStr = dateStr;
+    } else {
+        displayStr = `${targetDate.getFullYear()}-${String(targetDate.getMonth()+1).padStart(2,'0')}-${String(targetDate.getDate()).padStart(2,'0')}`;
+    }
+    const base = Date.UTC(2000, 0, 1);
+    const utcTarget = Date.UTC(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+    const days = Math.floor((utcTarget - base) / 86400000);
+    // 结合月建与日支推演建除十二神索引
+    const monthOffset = targetDate.getMonth() + 1;
+    const idx = (((days + monthOffset) % 12) + 12) % 12;
+    return {
+        dateLabel: displayStr,
+        info: KNOWLEDGE_BASE.jianChuTwelve[idx]
+    };
+}
+
 function startDivination() {
     const nameA = document.getElementById("nameA").value.trim();
     const nameB = document.getElementById("nameB").value.trim();
     const dateA = document.getElementById("dateA").value;
     const dateB = document.getElementById("dateB").value;
+    const meetDate = document.getElementById("meetDate").value;
     const luckyNumInput = document.getElementById("luckyNum").value;
 
     if (!nameA || !nameB) {
@@ -884,19 +981,38 @@ function startDivination() {
     document.getElementById("loading").style.display = "block";
 
     setTimeout(() => {
-        calculateResult(nameA, nameB, dateA, dateB, luckyNumInput);
+        calculateResult(nameA, nameB, dateA, dateB, meetDate, luckyNumInput);
         document.getElementById("loading").style.display = "none";
         document.getElementById("result-card").style.display = "block";
-    }, 800);
+    }, 650);
 }
 
-function calculateResult(nameA, nameB, dateA, dateB, luckyNumInput) {
+// 颠倒乾坤：一键互换左右位重新演算
+function swapPositions() {
+    const inputNameA = document.getElementById("nameA");
+    const inputNameB = document.getElementById("nameB");
+    const inputDateA = document.getElementById("dateA");
+    const inputDateB = document.getElementById("dateB");
+
+    const tempName = inputNameA.value;
+    inputNameA.value = inputNameB.value;
+    inputNameB.value = tempName;
+
+    const tempDate = inputDateA.value;
+    inputDateA.value = inputDateB.value;
+    inputDateB.value = tempDate;
+
+    startDivination();
+}
+
+function calculateResult(nameA, nameB, dateA, dateB, meetDate, luckyNumInput) {
     const infoA = calcNameWuxing(nameA);
     const infoB = calcNameWuxing(nameB);
     const pairKey = infoA.wx + infoB.wx;
     const wxData = KNOWLEDGE_BASE.wuxingPairs[pairKey];
 
     const starInfo = calcSutraRelation(dateA, dateB, infoA.totalStrokes, infoB.totalStrokes);
+    const jianChu = calcJianChuDay(meetDate);
 
     const now = new Date();
     const numSeed = luckyNumInput ? parseInt(luckyNumInput, 10) : (now.getMinutes() + now.getSeconds());
@@ -905,12 +1021,14 @@ function calculateResult(nameA, nameB, dateA, dateB, luckyNumInput) {
 
     const roleText = starInfo.relData.roleTemplate(nameA, nameB, starInfo.dirFlag);
     const strokeProof = `康熙繁体：${infoA.detailStr}=${infoA.totalStrokes}画(${infoA.wx}) ｜ ${infoB.detailStr}=${infoB.totalStrokes}画(${infoB.wx})`;
-    const guaFullDesc = `起卦得${guaData.name}。` + guaData.desc;
+    const meetProof = `定情/同框日（${jianChu.dateLabel}）：老黄历【${jianChu.info.tag}】`;
+    const guaFullDesc = `${jianChu.info.verdict} 另起天机得${guaData.name}：${guaData.desc}`;
 
     currentReportData = {
         nameA, nameB,
         mainTag: starInfo.relData.type,
         wxTag: wxData.title,
+        dayTag: jianChu.info.tag,
         quote: wxData.quote,
         wuxingMetric: `${infoA.wx}${infoB.wx} · ${wxData.title}`,
         xingxiuMetric: starInfo.relData.short,
@@ -920,14 +1038,17 @@ function calculateResult(nameA, nameB, dateA, dateB, luckyNumInput) {
         nameDesc: wxData.desc,
         lunarProof: starInfo.lunarInfo,
         starDesc: starInfo.relData.desc,
+        meetProof,
         guaDesc: guaFullDesc,
         yi: guaData.yi,
         ji: guaData.ji
     };
 
-    document.getElementById("res-names").innerHTML = `${nameA} <span>&</span> ${nameB}`;
+    document.getElementById("res-nameA").innerText = nameA;
+    document.getElementById("res-nameB").innerText = nameB;
     document.getElementById("res-main-tag").innerText = currentReportData.mainTag;
     document.getElementById("res-wx-tag").innerText = currentReportData.wxTag;
+    document.getElementById("res-day-tag").innerText = currentReportData.dayTag;
     document.getElementById("res-soul-quote").innerText = currentReportData.quote;
     
     document.getElementById("res-wuxing").innerText = currentReportData.wuxingMetric;
@@ -939,6 +1060,7 @@ function calculateResult(nameA, nameB, dateA, dateB, luckyNumInput) {
     document.getElementById("res-name-desc").innerText = currentReportData.nameDesc;
     document.getElementById("res-lunar-proof").innerText = currentReportData.lunarProof;
     document.getElementById("res-star-desc").innerText = currentReportData.starDesc;
+    document.getElementById("res-meet-proof").innerText = currentReportData.meetProof;
     document.getElementById("res-gua-desc").innerText = currentReportData.guaDesc;
     document.getElementById("res-yi").innerText = currentReportData.yi;
     document.getElementById("res-ji").innerText = currentReportData.ji;
@@ -970,7 +1092,7 @@ function generatePoster() {
     const ctx = canvas.getContext("2d");
 
     const W = 750;
-    const H = 1420;
+    const H = 1480;
     canvas.width = W;
     canvas.height = H;
 
@@ -1004,26 +1126,34 @@ function generatePoster() {
     ctx.font = "bold 46px 'PingFang SC', 'Microsoft YaHei', serif";
     ctx.fillText(`${d.nameA}  ✦  ${d.nameB}`, W / 2, 162);
 
+    // 三枚古风标签徽章
     ctx.fillStyle = "#a82828";
-    ctx.fillRect(W/2 - 190, 192, 175, 42);
+    ctx.fillRect(W/2 - 275, 192, 170, 42);
     ctx.fillStyle = "#ffffff";
-    ctx.font = "bold 22px 'PingFang SC', 'Microsoft YaHei', sans-serif";
-    ctx.fillText(d.mainTag, W/2 - 102, 221);
+    ctx.font = "bold 20px 'PingFang SC', sans-serif";
+    ctx.fillText(d.mainTag, W/2 - 190, 220);
 
     ctx.fillStyle = "rgba(212, 175, 55, 0.18)";
-    ctx.fillRect(W/2 + 15, 192, 175, 42);
+    ctx.fillRect(W/2 - 85, 192, 170, 42);
     ctx.strokeStyle = "#d4af37";
     ctx.lineWidth = 1;
-    ctx.strokeRect(W/2 + 15, 192, 175, 42);
+    ctx.strokeRect(W/2 - 85, 192, 170, 42);
     ctx.fillStyle = "#f6e7b4";
-    ctx.fillText(d.wxTag, W/2 + 102, 221);
+    ctx.fillText(d.wxTag, W/2, 220);
 
+    ctx.fillStyle = "rgba(212, 175, 55, 0.18)";
+    ctx.fillRect(W/2 + 105, 192, 170, 42);
+    ctx.strokeRect(W/2 + 105, 192, 170, 42);
+    ctx.fillText(d.dayTag, W/2 + 190, 220);
+
+    // 灵魂金句框
     ctx.fillStyle = "rgba(212, 175, 55, 0.08)";
     ctx.fillRect(65, 260, W - 130, 86);
     ctx.fillStyle = "#f6e7b4";
     ctx.font = "italic 23px 'PingFang SC', 'Microsoft YaHei', serif";
     wrapCanvasText(ctx, d.quote, W / 2, 298, W - 170, 34);
 
+    // 三项指标栏
     const boxW = 196;
     const startX = 65;
     const metrics = [
@@ -1047,14 +1177,16 @@ function generatePoster() {
         ctx.fillText(m.val, bx + boxW/2, 436);
     });
 
+    // 羁绊定位横幅
     ctx.fillStyle = "rgba(168, 40, 40, 0.25)";
     ctx.fillRect(65, 474, W - 130, 46);
     ctx.fillStyle = "#f6e7b4";
     ctx.font = "20px 'PingFang SC', sans-serif";
     ctx.fillText(d.roleText, W / 2, 504);
 
+    // 三大判词段落
     ctx.textAlign = "left";
-    let curY = 565;
+    let curY = 562;
 
     function drawSection(title, proof, body) {
         ctx.fillStyle = "#d4af37";
@@ -1062,26 +1194,27 @@ function generatePoster() {
         ctx.fillStyle = "#f6e7b4";
         ctx.font = "bold 23px 'PingFang SC', sans-serif";
         ctx.fillText(title, 82, curY);
-        curY += 30;
+        curY += 28;
 
         if (proof) {
             ctx.fillStyle = "#d4af37";
             ctx.font = "18px 'PingFang SC', sans-serif";
             ctx.fillText(proof, 82, curY);
-            curY += 30;
+            curY += 28;
         }
 
         ctx.fillStyle = "#e0dae6";
-        ctx.font = "21px 'PingFang SC', sans-serif";
-        curY = wrapCanvasText(ctx, body, 82, curY, W - 150, 32);
-        curY += 22;
+        ctx.font = "20.5px 'PingFang SC', sans-serif";
+        curY = wrapCanvasText(ctx, body, 82, curY, W - 150, 31);
+        curY += 20;
     }
 
     drawSection("一、名号数理批注（康熙繁体五格）", d.strokeProof, d.nameDesc);
     drawSection("二、星宿与生辰判词（正宗宿曜经）", d.lunarProof, d.starDesc);
-    drawSection("三、天机鉴糖签（梅花易数起卦）", null, d.guaDesc);
+    drawSection("三、同框择吉与天机签（建除十二神 × 易数）", d.meetProof, d.guaDesc);
 
-    curY += 6;
+    // 宜忌与朱砂方印
+    curY += 4;
     ctx.fillStyle = "rgba(255,255,255,0.05)";
     ctx.fillRect(65, curY, 440, 88);
     
